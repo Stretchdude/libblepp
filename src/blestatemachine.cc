@@ -517,7 +517,7 @@ namespace BLEPP
 		}
 	}
 
-	void BLEGATTStateMachine::read_and_process_next()
+	bool BLEGATTStateMachine::read_and_process_next()
 	{
 		ENTER();
 		//This is always an error
@@ -532,7 +532,7 @@ namespace BLEPP
 			//The program then issues a call to read without checking for errors.
 			//The result is harmless and unlikely, so log a warning.
 			LOG(Warning, "Trying to read_and_process_next while disconnected");
-			return;
+			return false;
 		}
 
 		try
