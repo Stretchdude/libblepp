@@ -325,6 +325,7 @@ namespace BLEPP
 			reset();
 			throw SocketConnectFailed(strerror(errno));
 		}
+		dev.send_mtu_denial();
 	}
 
 

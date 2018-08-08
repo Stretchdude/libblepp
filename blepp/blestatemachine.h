@@ -33,6 +33,11 @@
 
 #include <bluetooth/l2cap.h>
 
+#include <inttypes.h>
+#include <blepp/uuid.h>
+
+
+
 namespace BLEPP
 {
 	enum class WriteType

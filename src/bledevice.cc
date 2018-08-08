@@ -30,6 +30,7 @@
 #include <sys/socket.h>
 
 #include <unistd.h>
+#include <errno.h>
 
 using namespace std;
 
@@ -148,9 +149,30 @@ namespace BLEPP
 		send_write_command(handle, buf, 2);
 	}
 
+	void BLEDevice::send_mtu_denial()
+	{
+		int len = enc_error_resp(ATT_OP_MTU_REQ, 0x000 ,ATT_ECODE_REQ_NOT_SUPP, buf.data(), buf.size());
+		test_pdu(len);
+		int ret = write(sock, buf.data(), len);
+		test(ret, Write);
+	}
 
 	PDUResponse BLEDevice::receive(uint8_t* buf, int max)
 	{
+		fd_set readfds;
+		struct timeval to = { .tv_sec = 10, .tv_usec = 0 };
+		FD_ZERO(&readfds);
+		FD_SET(sock, &readfds);
+		int retbgo = ::select(sock + 1, &readfds, NULL, NULL, &to);
+		if (retbgo == -1){
+			char msg[256] = {0};
+			sprintf(msg, "BLEPP: gonna NOT read socket because error: %s\n", strerror(errno));
+			LOG(Warning, msg);
+			return PDUResponse(nullptr, 0);
+		}else if (0  == FD_ISSET(sock, &readfds)) {
+			LOG(Warning, "BLEPP: gonna NOT read socket because no input\n");
+			return PDUResponse(nullptr, 0);
+		}
 		int len = read(sock, buf, max);
 		test(len, Read);
 		pretty_print(PDUResponse(buf, len));

@@ -34,6 +34,8 @@
 #include <blepp/blestatemachine.h> //for UUID. FIXME mofo
 #include <bluetooth/hci.h>
 
+#include <unistd.h>
+
 namespace BLEPP
 {
 	enum class LeAdvertisingEventType
