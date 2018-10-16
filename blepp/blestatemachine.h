@@ -335,36 +335,36 @@ namespace BLEPP
 
 
 			BLEGATTStateMachine();
-			~BLEGATTStateMachine();
+			virtual ~BLEGATTStateMachine();
 
 			
-			void connect_blocking(const std::string& addres);
-			void connect_nonblocking(const std::string& addres);
-			void connect(const std::string& addresa, bool blocking, bool pubaddr = true, std::string device = "");
-			void close();
+			virtual void connect_blocking(const std::string& addres);
+			virtual void connect_nonblocking(const std::string& addres);
+			virtual void connect(const std::string& addresa, bool blocking, bool pubaddr = true, std::string device = "");
+			virtual void close();
 
-			int socket();
+			virtual int socket();
 		
-			bool wait_on_write();
+			virtual bool wait_on_write();
 			
-			bool is_idle()
+			virtual bool is_idle()
 			{
 				return state == Idle;
 			}
 			
-			void send_write_request(uint16_t handle, const uint8_t* data, int length);
-			void send_write_command(uint16_t handle, const uint8_t* data, int length);
-			void send_read_request(uint16_t handle);
+			virtual void send_write_request(uint16_t handle, const uint8_t* data, int length);
+			virtual void send_write_command(uint16_t handle, const uint8_t* data, int length);
+			virtual void send_read_request(uint16_t handle);
 
-			void read_primary_services();
-			void find_all_characteristics();
-			void get_client_characteristic_configuration();
-			bool read_and_process_next();
-			void write_and_process_next();
-			void set_notify_and_indicate(Characteristic& c, bool notify, bool indicate, WriteType type = WriteType::Request);
+			virtual void read_primary_services();
+			virtual void find_all_characteristics();
+			virtual void get_client_characteristic_configuration();
+			virtual bool read_and_process_next();
+			virtual void write_and_process_next();
+			virtual void set_notify_and_indicate(Characteristic& c, bool notify, bool indicate, WriteType type = WriteType::Request);
 
 
-			void setup_standard_scan(std::function<void()>& cb);
+			virtual void setup_standard_scan(std::function<void()>& cb);
 	};
 
 
