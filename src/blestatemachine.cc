@@ -795,6 +795,7 @@ namespace BLEPP
 		{
 			fail(Disconnect(Disconnect::ReadError, errno));
 		}
+		return true;
 	}
 		
 	
