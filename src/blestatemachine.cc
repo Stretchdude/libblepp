@@ -325,10 +325,28 @@ namespace BLEPP
 			reset();
 			throw SocketConnectFailed(strerror(errno));
 		}
+#if 0
+		fd_set readfds;
+		fd_set exepfds;
+		struct timeval to = { .tv_sec = 10, .tv_usec = 0 };
+		FD_ZERO(&readfds);
+		FD_ZERO(&exepfds);
+		FD_SET(sock, &readfds);
+		FD_SET(sock, &exepfds);
+		int retbgo = ::select(sock + 1, &readfds, NULL, &exepfds, &to);
+		if (FD_ISSET(sock, &exepfds)) printf("EXEPTION: %S:%d\n", __FILE__, __LINE__);
+		if (retbgo != -1 && FD_ISSET(sock, &readfds)) {
+			std::vector<uint8_t> bluffer(128);
+			if (dev.receive(bluffer).type() == ATT_OP_MTU_REQ) {
+				string msg = string("received MTU request is denied (connect)");
+				BLEPP_LOG(Info, msg);
+				dev.send_mtu_denial();
+			}
+		}
+#else
 		dev.send_mtu_denial();
+#endif
 	}
-
-
 
 	int BLEGATTStateMachine::socket()
 	{
@@ -532,15 +550,25 @@ namespace BLEPP
 			//The write is processed first and fails, causing a disconnect.
 			//The program then issues a call to read without checking for errors.
 			//The result is harmless and unlikely, so log a warning.
-			LOG(Warning, "Trying to read_and_process_next while disconnected");
+			BLEPP_LOG(Warning, "Trying to read_and_process_next while disconnected");
 			return false;
 		}
 
 		try
 		{
 			PDUResponse r = dev.receive(buf);
-
-			if(r.type() == ATT_OP_HANDLE_NOTIFY || r.type() == ATT_OP_HANDLE_IND)
+			if (r.length == 0 ){printf("GONNA DIEEEEEEEE\n"); return false;}
+			if(r.type() != ATT_OP_ERROR && r.type() == ATT_OP_MTU_REQ)
+			{
+				/* BGOBGO: this can confuse the state machine if the BLE device
+				 * sends MTU request immediately after connect. -> denial and
+				 * get it off the table.
+				 */
+				string msg = string("received MTU request is denied");
+				BLEPP_LOG(Info, msg);
+				dev.send_mtu_denial();
+			}
+			else if(r.type() == ATT_OP_HANDLE_NOTIFY || r.type() == ATT_OP_HANDLE_IND)
 			{
 				PDUNotificationOrIndication n(r);
 
