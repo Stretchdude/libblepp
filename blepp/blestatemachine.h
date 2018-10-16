@@ -34,6 +34,7 @@
 #include <bluetooth/l2cap.h>
 
 #include <inttypes.h>
+#include <functional>
 #include <blepp/uuid.h>
 
 

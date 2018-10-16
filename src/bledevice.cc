@@ -30,7 +30,6 @@
 #include <sys/socket.h>
 
 #include <unistd.h>
-#include <errno.h>
 
 using namespace std;
 
@@ -156,6 +155,8 @@ namespace BLEPP
 		int ret = write(sock, buf.data(), len);
 		test(ret, Write);
 	}
+
+#include <errno.h>
 
 	PDUResponse BLEDevice::receive(uint8_t* buf, int max)
 	{
