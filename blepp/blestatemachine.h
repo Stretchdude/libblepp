@@ -108,7 +108,7 @@ namespace BLEPP
 		{
 			if(value_size() != 2 && value_size() != 16)
 			{
-				LOG(Error, "UUID length" << value_size());
+				BLEPP_LOG(Error, "UUID length" << value_size());
 				error<std::runtime_error>("Invalid UUID length in PDUReadGroupByTypeResponse");
 			}
 		}

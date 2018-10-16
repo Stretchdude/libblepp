@@ -54,11 +54,11 @@ namespace BLEPP
 	{
 		if(fd < 0)
 		{
-			LOG(Info, "Error on line " << line << "( " << __FILE__ << "): " <<strerror(errno));
+			BLEPP_LOG(Info, "Error on line " << line << "( " << __FILE__ << "): " <<strerror(errno));
 			throw C();
 		}
 		else
-			LOG(Debug, "System call on " << line << "( " << __FILE__ << "): " << strerror(errno) << " ret = " << fd);
+			BLEPP_LOG(Debug, "System call on " << line << "( " << __FILE__ << "): " << strerror(errno) << " ret = " << fd);
 	}
 
 	void BLEDevice::test_pdu(int len)
@@ -167,10 +167,10 @@ namespace BLEPP
 		if (retbgo == -1){
 			char msg[256] = {0};
 			sprintf(msg, "BLEPP: gonna NOT read socket because error: %s\n", strerror(errno));
-			LOG(Warning, msg);
+			BLEPP_LOG(Warning, msg);
 			return PDUResponse(nullptr, 0);
 		}else if (0  == FD_ISSET(sock, &readfds)) {
-			LOG(Warning, "BLEPP: gonna NOT read socket because no input\n");
+			BLEPP_LOG(Warning, "BLEPP: gonna NOT read socket because no input\n");
 			return PDUResponse(nullptr, 0);
 		}
 		int len = read(sock, buf, max);

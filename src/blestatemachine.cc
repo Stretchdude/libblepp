@@ -50,10 +50,10 @@ namespace BLEPP
 		{
 			if(fd < 0)
 			{
-				LOG(Error, "Error on line: " << line << " (" << file << "): " << strerror(errno));
+				BLEPP_LOG(Error, "Error on line: " << line << " (" << file << "): " << strerror(errno));
 			}
 			else
-				LOG(Info, "Socket success: " << line << " (" << file << ")");
+				BLEPP_LOG(Info, "Socket success: " << line << " (" << file << ")");
 
 			return fd;
 		}
@@ -252,7 +252,7 @@ namespace BLEPP
 		else {
 			bdaddr_t btsrc_addr;
 			int dev_id = hci_devid(device.c_str()); //obtain device id from HCI device name
-			LOG(Debug, "dev_id = " << dev_id);
+			BLEPP_LOG(Debug, "dev_id = " << dev_id);
 			if (dev_id < 0) {
 				throw SocketConnectFailed("Error obtaining HCI device ID");
 			}	
@@ -291,8 +291,8 @@ namespace BLEPP
 
 		//Can also use bacpy to copy addresses about
 		int rr = str2ba(address.c_str(), &addr.l2_bdaddr);
-		LOG(Debug, "address = " << address);
-		LOG(Debug, "str2ba = " << rr);
+		BLEPP_LOG(Debug, "address = " << address);
+		BLEPP_LOG(Debug, "str2ba = " << rr);
 		int ret = log_fd(::connect(sock, (sockaddr*)&addr, sizeof(addr)));
 		
 
@@ -437,7 +437,7 @@ namespace BLEPP
 
 	void BLEGATTStateMachine::set_notify_and_indicate(Characteristic& c, bool notify, bool indicate, WriteType type)
 	{
-		LOG(Trace, "BLEGATTStateMachine::enable_indications(Characteristic&)");
+		BLEPP_LOG(Trace, "BLEGATTStateMachine::enable_indications(Characteristic&)");
 
 		if(state != Idle)
 			throw logic_error("Error trying to issue command mid state");
@@ -486,7 +486,7 @@ namespace BLEPP
 	{
 		PDUErrorResponse err(r);
 		string msg = string("Received unexpected error:") + att_ecode2str(err.error_code());
-		LOG(Error, msg);
+		BLEPP_LOG(Error, msg);
 		fail(Disconnect(Disconnect::Reason::UnexpectedError, Disconnect::NoErrorCode));
 	}
 	////////////////////////////////////////////////////////////////////////////////
@@ -497,7 +497,7 @@ namespace BLEPP
 		ENTER();
 		try
 		{
-			LOG(Debug, "State is: " << state);
+			BLEPP_LOG(Debug, "State is: " << state);
 			if(state == Connecting)
 			{
 				int errval=-7;
@@ -506,7 +506,7 @@ namespace BLEPP
 				//Check the status of the socket
 				log_fd(getsockopt(sock, SOL_SOCKET, SO_ERROR, &errval, &len));
 
-				LOG(Info, "errval = " << strerror(errval));
+				BLEPP_LOG(Info, "errval = " << strerror(errval));
 
 				if(errval == 0)
 				{
@@ -523,7 +523,7 @@ namespace BLEPP
 			}
 			else
 			{
-				LOG(Error, "Not implemented!");
+				BLEPP_LOG(Error, "Not implemented!");
 			}
 		}
 		catch(BLEDevice::WriteError)
@@ -581,7 +581,7 @@ namespace BLEPP
 					else if(cb_notify_or_indicate)
 						cb_notify_or_indicate(*c, n);
 					else
-						LOG(Warning, "Notify arrived, but no callback set\n");
+						BLEPP_LOG(Warning, "Notify arrived, but no callback set\n");
 				}
 
 				//Respond to indications after the callback has run
@@ -593,13 +593,14 @@ namespace BLEPP
 				PDUErrorResponse err(r);
 
 				std::string msg = string("Unexpected opcode in error. Expected ") + att_op2str(last_request) + " got "  + att_op2str(err.request_opcode());
-				LOG(Error, msg);
+				BLEPP_LOG(Error, msg);
 				fail(Disconnect(Disconnect::Reason::UnexpectedError, Disconnect::NoErrorCode));
 			}
+
 			else if(r.type() != ATT_OP_ERROR && r.type() != last_request + 1)
 			{
 				string msg = string("Unexpected response. Expected ") + att_op2str(last_request+1) + " got "  + att_op2str(r.type());
-				LOG(Error, msg);
+				BLEPP_LOG(Error, msg);
 				fail(Disconnect(Disconnect::Reason::UnexpectedResponse, Disconnect::NoErrorCode));
 			}
 			else
@@ -665,14 +666,14 @@ namespace BLEPP
 							uint16_t handle = rc.handle(i);
 							GATTReadCharacteristic::Characteristic ch = rc.characteristic(i);
 
-							LOG(Debug, "Found characteristic handle: " << to_hex(handle));
+							BLEPP_LOG(Debug, "Found characteristic handle: " << to_hex(handle));
 
 							//Search for the correct service.
 							for(unsigned int s=0; s < primary_services.size(); s++)
 							{
 								if(handle > primary_services[s].start_handle && handle <= primary_services[s].end_handle)
 								{
-									LOG(Debug, "  handle belongs to service " << s);
+									BLEPP_LOG(Debug, "  handle belongs to service " << s);
 									Characteristic c(this);
 
 
@@ -705,7 +706,7 @@ namespace BLEPP
 
 							next_handle_to_read = handle+1;
 						}
-						LOG(Debug,  "Reading " << to_hex((uint16_t)next_handle_to_read) << " next");
+						BLEPP_LOG(Debug,  "Reading " << to_hex((uint16_t)next_handle_to_read) << " next");
 						state_machine_write();
 					}
 				}
@@ -730,7 +731,7 @@ namespace BLEPP
 						{
 							uint16_t handle = rc.handle(i);
 							next_handle_to_read = handle + 1;
-							LOG(Debug, "Handle: " << to_hex(rc.handle(i)) << "  ccc: " << to_hex(rc.ccc(i)));
+							BLEPP_LOG(Debug, "Handle: " << to_hex(rc.handle(i)) << "  ccc: " << to_hex(rc.ccc(i)));
 
 
 							//Find the correct place
@@ -771,7 +772,7 @@ namespace BLEPP
 
 						PDUReadResponse read(r);
 						Characteristic* c = characteristic_of_handle(h);
-						LOG(Debug, "Read response: handle requested was " << to_hex(h));
+						BLEPP_LOG(Debug, "Read response: handle requested was " << to_hex(h));
 
 						if(c)
 						{
@@ -780,7 +781,7 @@ namespace BLEPP
 							else if(cb_read)
 								cb_read(*c, read);
 							else
-								LOG(Warning, "Read arrived, but no callback set\n");
+								BLEPP_LOG(Warning, "Read arrived, but no callback set\n");
 						}
 					}
 				}
@@ -853,7 +854,7 @@ namespace BLEPP
 
 	void Characteristic::set_notify_and_indicate(bool notify, bool indicate, WriteType type)
 	{
-		LOG(Trace, "Characteristic::enable_indications()");
+		BLEPP_LOG(Trace, "Characteristic::enable_indications()");
 		s->set_notify_and_indicate(*this, notify, indicate, type);
 	}
 
