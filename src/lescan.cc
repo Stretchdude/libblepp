@@ -94,6 +94,11 @@ namespace BLEPP
 		}
 	}
 
+	AdvertisingResponse::Flags::Flags()
+	{
+		flag_data.clear();
+	}
+
 	string to_hex(const Span& s)
 	{
 		return to_hex(s.data(), s.size());
@@ -596,6 +601,9 @@ namespace BLEPP
 				rsp.address = address;
 				rsp.type = event_type;
 				rsp.rssi = rssi;
+				rsp.flags = nullptr;
+				rsp.local_name = nullptr;
+
 
 				while(data.size() > 0)
 				{
@@ -612,7 +620,7 @@ namespace BLEPP
 
 					if(type == GAP::flags)
 					{
-						rsp.flags = AdvertisingResponse::Flags({chunk.begin(), chunk.end()});
+						rsp.flags = new AdvertisingResponse::Flags({chunk.begin(), chunk.end()});
 
 						BLEPP_LOG(Info, "Flags = " << to_hex(rsp.flags->flag_data));
 
@@ -653,12 +661,12 @@ namespace BLEPP
 					else if(type == GAP::shortened_local_name || type == GAP::complete_local_name)
 					{
 						chunk.pop_front();
-						AdvertisingResponse::Name n;
-						n.complete = type==GAP::complete_local_name;
-						n.name = string(chunk.begin(), chunk.end());
+						AdvertisingResponse::Name *n = new AdvertisingResponse::Name();
+						n->complete = type==GAP::complete_local_name;
+						n->name = string(chunk.begin(), chunk.end());
 						rsp.local_name = n;
 
-						BLEPP_LOG(Info, "Name (" << (n.complete?"complete":"incomplete") << "): " << n.name);
+						BLEPP_LOG(Info, "Name (" << (n->complete?"complete":"incomplete") << "): " << n->name);
 					}
 					else if(type == GAP::manufacturer_data)
 					{
