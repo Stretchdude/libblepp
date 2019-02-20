@@ -83,9 +83,9 @@ namespace BLEPP
 		bool uuid_128_bit_complete=0;
 		
 		//boost::optional<Name>  local_name;
-		Name *local_name;
+		Name *local_name = nullptr;
 		//boost::optional<Flags> flags;
-		Flags *flags;
+		Flags *flags = nullptr;
 
 		std::vector<std::vector<uint8_t>> manufacturer_specific_data;
 		std::vector<std::vector<uint8_t>> service_data;
