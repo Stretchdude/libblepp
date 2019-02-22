@@ -148,15 +148,29 @@ namespace BLEPP
 		send_write_command(handle, buf, 2);
 	}
 
+#include <errno.h>
+
 	void BLEDevice::send_mtu_denial()
 	{
 		int len = enc_error_resp(ATT_OP_MTU_REQ, 0x000 ,ATT_ECODE_REQ_NOT_SUPP, buf.data(), buf.size());
 		test_pdu(len);
-		int ret = write(sock, buf.data(), len);
-		test(ret, Write);
+		struct timeval to = { .tv_sec = 5, .tv_usec = 0 };
+		fd_set writefds;
+		fd_set expfds;
+		FD_ZERO(&writefds);
+		FD_ZERO(&expfds);
+		FD_SET(sock, &writefds);
+		FD_SET(sock, &expfds);
+		int retbgo = ::select(sock + 1, NULL, &writefds, &expfds, &to);
+		if (retbgo == -1 || FD_ISSET(sock, &expfds)) {
+			char msg[256] = {0};
+			sprintf(msg, "BLEPP: gonna NOT write MTU denial: %s\n", strerror(errno));
+			BLEPP_LOG(Warning, msg);
+		} else {
+			int ret = write(sock, buf.data(), len);
+			test(ret, Write);
+		}
 	}
-
-#include <errno.h>
 
 	PDUResponse BLEDevice::receive(uint8_t* buf, int max)
 	{
