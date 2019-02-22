@@ -554,7 +554,7 @@ namespace BLEPP
 				BLEPP_LOG(Info, "event_type = 0x04 SCAN_RSP, Scan response");
 			else
 				BLEPP_LOG(Warning, "event_type = 0x" << hex << (int)event_type << dec << ", unknown");
-			
+
 			uint8_t address_type = packet.pop_front();
 
 			if(address_type == 0)
@@ -576,13 +576,11 @@ namespace BLEPP
 				address = s.str() + address;
 			}
 
-
 			LOGVAR(Info, address);
 
 			uint8_t length = packet.pop_front();
 			LOGVAR(Info, length);
 			
-
 			Span data = packet.pop_front(length);
 
 			BLEPP_LOG(Debug, "Data = " << to_hex(data));
@@ -601,9 +599,8 @@ namespace BLEPP
 				rsp.address = address;
 				rsp.type = event_type;
 				rsp.rssi = rssi;
-				rsp.flags = nullptr;
-				rsp.local_name = nullptr;
-
+				//rsp.flags = nullptr;
+				//rsp.local_name = nullptrr;
 
 				while(data.size() > 0)
 				{
@@ -613,30 +610,30 @@ namespace BLEPP
 					int length = data.pop_front();
 					
 					LOGVAR(Debug, length);
-
 					Span chunk = data.pop_front(length);
 					uint8_t type = chunk[0];
 					LOGVAR(Debug, type);
 
 					if(type == GAP::flags)
 					{
-						rsp.flags = new AdvertisingResponse::Flags({chunk.begin(), chunk.end()});
+						AdvertisingResponse::Flags *fl = new AdvertisingResponse::Flags({chunk.begin(), chunk.end()});
+						rsp.flags = *fl;
 
-						BLEPP_LOG(Info, "Flags = " << to_hex(rsp.flags->flag_data));
+						BLEPP_LOG(Info, "Flags = " << to_hex(rsp.flags.flag_data));
 
-						if(rsp.flags->LE_limited_discoverable)
+						if(rsp.flags.LE_limited_discoverable)
 							BLEPP_LOG(Info, "        LE limited discoverable");
 
-						if(rsp.flags->LE_general_discoverable)
+						if(rsp.flags.LE_general_discoverable)
 							BLEPP_LOG(Info, "        LE general discoverable");
 
-						if(rsp.flags->BR_EDR_unsupported)
+						if(rsp.flags.BR_EDR_unsupported)
 							BLEPP_LOG(Info, "        BR/EDR unsupported");
 
-						if(rsp.flags->simultaneous_LE_BR_host)
+						if(rsp.flags.simultaneous_LE_BR_host)
 							BLEPP_LOG(Info, "        simultaneous LE BR host");
 
-						if(rsp.flags->simultaneous_LE_BR_controller)
+						if(rsp.flags.simultaneous_LE_BR_controller)
 							BLEPP_LOG(Info, "        simultaneous LE BR controller");
 					}
 					else if(type == GAP::incomplete_list_of_16_bit_UUIDs || type == GAP::complete_list_of_16_bit_UUIDs)
@@ -662,9 +659,12 @@ namespace BLEPP
 					{
 						chunk.pop_front();
 						AdvertisingResponse::Name *n = new AdvertisingResponse::Name();
-						n->complete = type==GAP::complete_local_name;
-						n->name = string(chunk.begin(), chunk.end());
-						rsp.local_name = n;
+						//n->complete = type==GAP::complete_local_name;
+						std::string nn =  string(chunk.begin(), chunk.end());
+						//n->name = *nn;
+						rsp.local_name.name = nn;
+
+						rsp.local_name.complete = type==GAP::complete_local_name;
 
 						BLEPP_LOG(Info, "Name (" << (n->complete?"complete":"incomplete") << "): " << n->name);
 					}
@@ -681,7 +681,6 @@ namespace BLEPP
 						BLEPP_LOG(Info, "Unparsed chunk " << to_hex(chunk));
 					}
 				}
-
 				if(rsp.UUIDs.size() > 0)
 				{
 					BLEPP_LOG(Info, "UUIDs (128 bit " << (rsp.uuid_128_bit_complete?"complete":"incomplete")
@@ -690,9 +689,7 @@ namespace BLEPP
 					for(const auto& uuid: rsp.UUIDs)
 						BLEPP_LOG(Info, "    " << to_str(uuid));
 				}
-
 				ret.push_back(rsp);
-
 			}
 			catch(out_of_range r)
 			{

@@ -119,8 +119,8 @@ int main(int argc, char** argv)
 					cout << "Scan response" << endl;
 				for(const auto& uuid: ad.UUIDs)
 					cout << "  Service: " << to_str(uuid) << endl;
-				if(ad.local_name)
-					cout << "  Name: " << ad.local_name->name << endl;
+				if(ad.local_name.name.size())
+					cout << "  Name: " << ad.local_name.name << endl;
 				if(ad.rssi == 127)
 					cout << "  RSSI: unavailable" << endl;
 				else if(ad.rssi <= 20)
